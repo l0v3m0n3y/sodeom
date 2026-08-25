@@ -37,25 +37,30 @@ public class Sodeom {
 
     }
     
-    public func search(query: String,page: Int) async throws -> Any {
-        guard let url = URL(string: "\(api)/api/search?q=\(query)&page=\(page)") else {
+    private func fetchJSON(from urlString: String,method: HTTPMethod = .get,body: Data? = nil,queryParameters: [String: String]? = nil) async throws -> Any {
+        var urlComponents = URLComponents(string: urlString)
+        if let queryParameters = queryParameters {
+            urlComponents?.queryItems = queryParameters.map { URLQueryItem(name: $0.key, value: $0.value) }
+        }
+        guard let url = urlComponents?.url else {
             throw NSError(domain: "Invalid URL", code: -1)
         }
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        request.httpMethod = method.rawValue
         request.allHTTPHeaderFields = headers
+        if let body = body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         let (data, _) = try await URLSession.shared.data(for: request)
-        return  try JSONSerialization.jsonObject(with: data)
+        return try JSONSerialization.jsonObject(with: data)
     }
     
-    public func ai_request(query: String) async throws -> Any {
-        guard let url = URL(string: "\(api)/ai?query=\(query)") else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return  try JSONSerialization.jsonObject(with: data)
+    public func search(query: String,page: Int) async throws -> Any {
+        return try await fetchJSON(from: "\(api)/api/search?q=\(query)&page=\(page)") 
+    }
+    
+    public func aiRequest(query: String) async throws -> Any {
+        return try await fetchJSON(from: URL(string: "\(api)/ai?query=\(query)")
     }
 }
