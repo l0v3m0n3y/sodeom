@@ -6,8 +6,8 @@ import Foundation
 let client = Sodeom()
 
 do {
-    let ai_response = try await client.ai_request(query: "femboys")
-    print(ai_response)
+    let aiResponse = try await client.aiRequest(query: "femboys")
+    print(aiResponse)
 } catch {
     print("Error: \(error)")
 }
